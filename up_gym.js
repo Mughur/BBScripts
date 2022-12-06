@@ -1,0 +1,22 @@
+/** @param {NS} ns */
+export async function main(ns) {
+	ns.tail();ns.disableLog("ALL");ns.clearLog();
+	var a=0;
+	while(true){
+		if (ns.hacknet.hashCapacity()/1.1<ns.hacknet.hashCost("Improve Gym Training")){
+			var min=[0,99999999999];
+			for (let i=0;i<ns.hacknet.numNodes();i++){
+				if (ns.hacknet.getNodeStats(i).hashCapacity<min[1]){
+					min=[i,ns.hacknet.getNodeStats(i).hashCapacity];
+				}
+			}
+			if (ns.getPlayer().money>ns.hacknet.getCacheUpgradeCost(min[0],1)*10){
+				ns.hacknet.upgradeCache(min[0],1)
+			}
+		}
+		if(ns.hacknet.spendHashes("Improve Gym Training")){
+			ns.print(ns.hacknet.getHashUpgradeLevel("Improve Gym Training"))
+		}
+		await ns.sleep(0);
+	}
+}
