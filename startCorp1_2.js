@@ -1,7 +1,7 @@
 /** @param {NS} ns */
 export async function main(ns) {
 	ns.tail(); ns.disableLog("ALL"); ns.clearLog();
-	/*checked to work in 1.7 and 2.0 (8e859d84) in BNs 3,9 and 11
+	/*checked to work in 2.2 (680027cd) in BN 3
 	NOTE!! SF3.3 required for this to work
 
 	Script created by Mughur, following step-by-step the tinkered and expanded guide: https://docs.google.com/document/d/1eqQ_KTnk3VkW1XLHjM2fAQbCNY05CTCE85mJFjeFDE8/edit
@@ -11,7 +11,7 @@ export async function main(ns) {
 	Script is purposefully not optimized, as I do not want to give out too many tricks on how to build the main corp script.
 	Corporations are OP, I think people should put the work in in order to fully utilize them, but feel free to get inspirations from this script.
 
-	This script will take about 20-30 minutes to run depending on RNG, starts by creating a corporation and ends after starting the development of 1st tobacco product and spending available money on upgrades.
+	This script will take about 20 minutes to run depending on RNG, starts by creating a corporation and ends after starting the development of 1st tobacco product and spending available money on upgrades.
 	*/
 
 	// enter wanted corporation, agriculture and tobacco division names
@@ -32,8 +32,8 @@ export async function main(ns) {
 		[2675, 96, 2445, 119400],
 		[6500, 630, 3750, 84000]
 	]
-	let c=eval("ns.corporation")
-	//if you have to reset the game/script for some reason, change the stage[0] to the proper stage
+	let c=ns.corporation
+	//if you have to reset the game/script for some reason, change the stage[0] to the proper stage, then reset back to 0
 	let stage = [0, 0]; //stage, step
 
 	while (true) {
@@ -53,7 +53,11 @@ export async function main(ns) {
 	}
 
 	async function coffeeParty(){
-
+		for(const city of cities){
+			const office=c.getOffice(agricultureName,city)
+			if (office.avgEne<97) c.buyCoffee(agricultureName,city)
+			if (office.avgHap<97 || office.avgMor<97) c.throwParty(agricultureName,city,500_000)
+		}
 	}
 
 	async function checkStage() {
@@ -73,6 +77,7 @@ export async function main(ns) {
 				await invest(1); // stage 3
 				break;
 			case 4:
+				ns.print("Further upgrades")
 				await upgradeStuff(1); // stage 4
 				break;
 			case 5:
@@ -97,8 +102,8 @@ export async function main(ns) {
 	}
 
 	async function startstuff() {
-		c.createCorporation(companyName, false);
-		c.createCorporation(companyName, true);
+		try{c.createCorporation(companyName, false);}catch{}
+		try{c.createCorporation(companyName, true);}catch{}
 		c.expandIndustry("Agriculture", agricultureName);
 		c.unlockUpgrade("Smart Supply");
 
@@ -168,7 +173,7 @@ export async function main(ns) {
 		ns.print("   avg morale: " + (avgs[0] / 6).toFixed(3) + "/100")
 		ns.print("avg happiness: " + (avgs[1] / 6).toFixed(3) + "/99.998")
 		ns.print("   avg energy: " + (avgs[2] / 6).toFixed(3) + "/99.998")
-		if (avgs[0] / 6 >= 99.99999 && avgs[1] / 6 >= 99.998 && avgs[2] / 6 >= 99.998) { stage[0] += 1; stage[1] = 0; }
+		if (avgs[0] / 6 >= 97 && avgs[1] / 6 >= 97 && avgs[2] / 6 >= 97) { stage[0] += 1; stage[1] = 0; }
 	}
 
 	async function invest(i) {
@@ -178,7 +183,7 @@ export async function main(ns) {
 		// investor evaluation takes into account 5 cycles 
 		// and we want them to take into account the current high earning cycles,
 		// not the old low earning cycles, so we'll wait for a bit.
-		if (stage[1] < 5) {
+		if (stage[1] <= 5) {
 			ns.print("waiting cycles: " + stage[1] + "/5. investors are currently offering: " + ns.nFormat(c.getInvestmentOffer().funds, "0.00a"));
 			stage[1] += 1;
 		}

@@ -18,13 +18,14 @@ export async function main(ns) {
 	{
 		const contents=ns.read(originalName);
 		ns.write(targetName,contents);
-		ns.rm(originalName);
+		if (!ns.rm(originalName))ns.tprint("file removal was unsuccessful");
 		ns.tprint("file succesfully renamed");
 	}
 	for (const script of ns.ls("home")){
 		let contents = ns.read(script)
 		if (contents.includes(originalName)){
-			contents=contents.replaceAll(originalName,targetName);
+			contents=contents.replaceAll("'"+originalName+"'","'"+targetName+"'");
+			contents=contents.replaceAll('"'+originalName+'"','"'+targetName+'"');
 			ns.write(script,contents,"w");
 		}
 	}
