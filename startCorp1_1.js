@@ -152,8 +152,9 @@ export async function main(ns) {
 					while (ns.corporation.hireEmployee(agricultureName, city)) { };
 					ns.corporation.setAutoJobAssignment(agricultureName, city, jobs[0], 1+i)
 					ns.corporation.setAutoJobAssignment(agricultureName, city, jobs[1], 1+i)
-					ns.corporation.setAutoJobAssignment(agricultureName, city, jobs[2], 2+i)
+					ns.corporation.setAutoJobAssignment(agricultureName, city, jobs[2], 1+i)
 					ns.corporation.setAutoJobAssignment(agricultureName, city, jobs[3], 2)
+					ns.corporation.setAutoJobAssignment(agricultureName, city, jobs[4], 1)
 				} catch { }
 			}
 		}
@@ -182,6 +183,8 @@ export async function main(ns) {
 			ns.corporation.buyMaterial(agricultureName, city, boostMaterials[1], 0);
 			ns.corporation.buyMaterial(agricultureName, city, boostMaterials[2], 0);
 			ns.corporation.buyMaterial(agricultureName, city, boostMaterials[3], 0);
+			ns.corporation.setAutoJobAssignment(agricultureName, city, jobs[4], 0)
+			ns.corporation.setAutoJobAssignment(agricultureName, city, jobs[0], 3)
 		}
 	}
 
