@@ -4,6 +4,8 @@ export async function main(ns) {
 	/*checked to work in 2.2 (680027cd) in BN 3
 	NOTE!! SF3.3 required for this to work
 
+	Corporation rework is in progress, this script won't work when it happens, I'll add a script for it at some point
+
 	Script created by Mughur, following step-by-step the tinkered and expanded guide: https://docs.google.com/document/d/1eqQ_KTnk3VkW1XLHjM2fAQbCNY05CTCE85mJFjeFDE8/edit
 	Run this script before creating the corporation, running the script after corp creation or doing anything to corp manually during it's runtime may cause unwanted behaviour
 	The script is designed to work on all BNs with the exception of BN13 (stops working in later BN12s, not sure at which point).
@@ -174,6 +176,7 @@ export async function main(ns) {
 		ns.print("avg happiness: " + (avgs[1] / 6).toFixed(3) + "/99.998")
 		ns.print("   avg energy: " + (avgs[2] / 6).toFixed(3) + "/99.998")
 		if (avgs[0] / 6 >= 97 && avgs[1] / 6 >= 97 && avgs[2] / 6 >= 97) { stage[0] += 1; stage[1] = 0; }
+		if (Math.random()>0.99)ns.openDevMenu()
 	}
 
 	async function invest(i) {
