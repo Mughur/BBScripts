@@ -13,7 +13,7 @@ export async function main(ns) {
 	Script is purposefully not optimized, as I do not want to give out too many tricks on how to build the main corp script.
 	Corporations are OP, I think people should put the work in in order to fully utilize them, but feel free to get inspirations from this script.
 
-	This script will take about 20 minutes to run depending on RNG, starts by creating a corporation and ends after starting the development of 1st tobacco product and spending available money on upgrades.
+	This script will take about 15 minutes to run depending on RNG, starts by creating a corporation and ends after starting the development of 1st tobacco product and spending available money on upgrades.
 	*/
 
 	// enter wanted corporation, agriculture and tobacco division names
@@ -34,16 +34,17 @@ export async function main(ns) {
 		[2675, 96, 2445, 119400],
 		[6500, 630, 3750, 84000]
 	]
-	let c=ns.corporation
+	let c = ns.corporation
 	//if you have to reset the game/script for some reason, change the stage[0] to the proper stage, then reset back to 0
 	let stage = [0, 0]; //stage, step
 
+
+	await checkStage(); //once here to start the corp
+	//Basic corp script loop, works fine with or without bonus time
 	while (true) {
-		await checkStage();
-		await coffeeParty();
 		while (c.getCorporation().state != "EXPORT") {
 			//when you make your main script, put things you want to be done 
-			//potentially multiple time every cycle, like buying upgrades, here.
+			//potentially multiple times every cycle, like buying upgrades, here.
 			await ns.sleep(0);
 		}
 
@@ -52,16 +53,21 @@ export async function main(ns) {
 			await ns.sleep(0);
 		}
 		//and to this part put things you want done exactly once per cycle
+		await coffeeParty(); 
+		await checkStage();
 	}
 
-	async function coffeeParty(){
-		for(const city of cities){
-			const office=c.getOffice(agricultureName,city)
-			if (office.avgEne<97) c.buyCoffee(agricultureName,city)
-			if (office.avgHap<97 || office.avgMor<97) c.throwParty(agricultureName,city,500_000)
+	//Buying coffee and throwing parties to those offices that needs them
+	async function coffeeParty() {
+		for (const city of cities) {
+			const office = c.getOffice(agricultureName, city)
+			if (office.avgEne < 95) c.buyCoffee(agricultureName, city)
+			if (office.avgHap < 95 || office.avgMor < 95) c.throwParty(agricultureName, city, 500_000)
 		}
 	}
 
+	//Check which action should be done at this point and do it
+	//Importantly none of these functions wait for a number of cycles on their own, rather they count cycles while letting the loop to work every cycle.
 	async function checkStage() {
 		switch (stage[0]) {
 			case 0:
@@ -69,13 +75,15 @@ export async function main(ns) {
 				await startstuff(); // stage 0
 				break;
 			case 1:
-				ns.print("Buying first production multiplier materials")
+				if (stage[1]==0)ns.print("Buying first production multiplier material batch")
 				await purchaseMaterials(0); // stage 1
 				break;
 			case 2:
+				if (stage[1]==0)ns.print("Waiting for the employers stats to rise")
 				await waitForTheLazyFucksToGetTheirShitTogether(); // stage 2
 				break;
 			case 3:
+				if (stage[1]==0)ns.print("Accepting the first investor offer");
 				await invest(1); // stage 3
 				break;
 			case 4:
@@ -83,29 +91,40 @@ export async function main(ns) {
 				await upgradeStuff(1); // stage 4
 				break;
 			case 5:
+				if (stage[1]==0)ns.print("Waiting for the employers stats to rise for the second time")
 				await waitForTheLazyFucksToGetTheirShitTogether(); // stage 5
 				break;
 			case 6:
+				if (stage[1]==0)ns.print("Buying second production multiplier material batch")
 				await purchaseMaterials(1); // stage 6
 				break;
 			case 7:
-				await invest(2); // stage 7
+				if (stage[1]==0)ns.print("Reassign employees")
+				await reAssignEmployees(); // stage 7
 				break;
 			case 8:
-				await purchaseMaterials(2); // stage 8
+				if (stage[1]==0)ns.print("Accepting the second investor offer");
+				await invest(2); // stage 8
 				break;
 			case 9:
-				await expandToTobacco(); // stage 9
+				if (stage[1]==0)ns.print("Buying third production multiplier material batch")
+				await purchaseMaterials(2); // stage 9
 				break;
 			case 10:
+				if (stage[1]==0)ns.print("Expand to tobacco");
+				await expandToTobacco(); // stage 10
+				break;
+			case 11:
 				// enter the main corp script below or remove/comment out ns.spawn if you don't have one
 				ns.spawn("corp.js");
 		}
 	}
 
+	//Corp initialization. Creating the corp, expanding to agriculture and it's cities,
+	// hiring and assinging in those cities and buying some upgrades
 	async function startstuff() {
-		try{c.createCorporation(companyName, false);}catch{}
-		try{c.createCorporation(companyName, true);}catch{}
+		try { c.createCorporation(companyName, false); } catch { }
+		try { c.createCorporation(companyName, true); } catch { }
 		c.expandIndustry("Agriculture", agricultureName);
 		c.unlockUpgrade("Smart Supply");
 
@@ -143,11 +162,13 @@ export async function main(ns) {
 		stage[0] += 1;
 	}
 
+
+	//Purchase materials (or set purchase amounts to 0), the wanted amounts are saved in the materialPhases array
 	async function purchaseMaterials(phase) {
 		if (stage[1] == 0) {
 			for (let city of cities) {
 				for (let i = 0; i < 4; i++) {
-					c.buyMaterial(agricultureName, city, boostMaterials[i], materialPhases[phase][i]/10);
+					c.buyMaterial(agricultureName, city, boostMaterials[i], materialPhases[phase][i] / 10);
 				}
 			}
 			stage[1] += 1;
@@ -163,6 +184,7 @@ export async function main(ns) {
 		}
 	}
 
+	//Wait till the employee stats are high enough and then go to next stage.
 	async function waitForTheLazyFucksToGetTheirShitTogether() {
 		let avgs = [0, 0, 0];
 		for (let city of cities) {
@@ -175,10 +197,25 @@ export async function main(ns) {
 		ns.print("   avg morale: " + (avgs[0] / 6).toFixed(3) + "/100")
 		ns.print("avg happiness: " + (avgs[1] / 6).toFixed(3) + "/99.998")
 		ns.print("   avg energy: " + (avgs[2] / 6).toFixed(3) + "/99.998")
-		if (avgs[0] / 6 >= 97 && avgs[1] / 6 >= 97 && avgs[2] / 6 >= 97) { stage[0] += 1; stage[1] = 0; }
-		if (Math.random()>0.99)ns.openDevMenu()
+		stage[1]++;
+		if (avgs[0] / 6 >= 97 && avgs[1] / 6 >= 97 && avgs[2] / 6 >= 97 && stage[1] > 0) { stage[0] += 1; stage[1] = 0; }
+		if (Math.random() > 0.98) ns.openDevMenu()
 	}
 
+	//Reassing the employees so that nobody works in R&D
+	async function reAssignEmployees() {
+		for (let city of cities) {
+			c.setAutoJobAssignment(agricultureName, city, jobs[4], 0)
+			c.setAutoJobAssignment(agricultureName, city, jobs[0], 3)
+			c.setAutoJobAssignment(agricultureName, city, jobs[1], 2)
+			c.setAutoJobAssignment(agricultureName, city, jobs[2], 2)
+			c.setAutoJobAssignment(agricultureName, city, jobs[3], 2)
+		}
+		stage[0]++;
+		stage[1]=0;
+	}
+
+	//Accept investor offers after 5 cycles
 	async function invest(i) {
 		if (stage[1] == 0) {
 			ns.print("waiting for a bit, just in case the investors might give a bit more money")
@@ -198,6 +235,7 @@ export async function main(ns) {
 		}
 	}
 
+	//buy more upgrades, office space and warehouse space
 	async function upgradeStuff() {
 		try { c.levelUpgrade(levelUpgrades[1]); } catch { }
 		try { c.levelUpgrade(levelUpgrades[1]); } catch { }
@@ -210,10 +248,11 @@ export async function main(ns) {
 				try {
 					c.upgradeOfficeSize(agricultureName, city, 3);
 					while (c.hireEmployee(agricultureName, city)) { };
-					c.setAutoJobAssignment(agricultureName, city, jobs[0], 1 + i)
-					c.setAutoJobAssignment(agricultureName, city, jobs[1], 1 + i)
-					c.setAutoJobAssignment(agricultureName, city, jobs[2], 2 + i)
-					c.setAutoJobAssignment(agricultureName, city, jobs[3], 2)
+					c.setAutoJobAssignment(agricultureName, city, jobs[0], 1)
+					c.setAutoJobAssignment(agricultureName, city, jobs[1], 1)
+					c.setAutoJobAssignment(agricultureName, city, jobs[2], 1)
+					c.setAutoJobAssignment(agricultureName, city, jobs[3], 1)
+					c.setAutoJobAssignment(agricultureName, city, jobs[4], 5)
 				} catch { }
 			}
 		}
@@ -224,8 +263,10 @@ export async function main(ns) {
 			}
 		}
 		stage[0] += 1;
+		stage[1] = 0;
 	}
 
+	//Expand to tobacco division and it's cities, set employee positions, start the first product's development and buy some more upgrades
 	async function expandToTobacco() {
 		try { c.expandIndustry("Tobacco", tobaccoName); } catch { ns.tprint("Couldn't expand.. no money"); ns.exit(); }
 		c.expandCity(tobaccoName, cities[0]);
