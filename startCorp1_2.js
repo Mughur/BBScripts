@@ -13,7 +13,7 @@ export async function main(ns) {
 	Script is purposefully not optimized, as I do not want to give out too many tricks on how to build the main corp script.
 	Corporations are OP, I think people should put the work in in order to fully utilize them, but feel free to get inspirations from this script.
 
-	This script will take about 15 minutes to run depending on RNG, starts by creating a corporation and ends after starting the development of 1st tobacco product and spending available money on upgrades.
+	This script will take about 6 minutes to run, starts by creating a corporation and ends after starting the development of 1st tobacco product and spending available money on upgrades.
 	*/
 
 	// enter wanted corporation, agriculture and tobacco division names
@@ -75,12 +75,12 @@ export async function main(ns) {
 				await startstuff(); // stage 0
 				break;
 			case 1:
-				if (stage[1]==0)ns.print("Buying first production multiplier material batch")
-				await purchaseMaterials(0); // stage 1
+				if (stage[1]==0)ns.print("Waiting for the employers stats to rise")
+				await waitForTheLazyFucksToGetTheirShitTogether(); // stage 1
 				break;
 			case 2:
-				if (stage[1]==0)ns.print("Waiting for the employers stats to rise")
-				await waitForTheLazyFucksToGetTheirShitTogether(); // stage 2
+				if (stage[1]==0)ns.print("Buying first production multiplier material batch")
+				await purchaseMaterials(0); // stage 2
 				break;
 			case 3:
 				if (stage[1]==0)ns.print("Accepting the first investor offer");
@@ -194,12 +194,12 @@ export async function main(ns) {
 		}
 		ns.clearLog();
 		ns.print("waiting for employee stats to rise");
-		ns.print("   avg morale: " + (avgs[0] / 6).toFixed(3) + "/100")
-		ns.print("avg happiness: " + (avgs[1] / 6).toFixed(3) + "/99.998")
-		ns.print("   avg energy: " + (avgs[2] / 6).toFixed(3) + "/99.998")
+		ns.print("   avg morale: " + (avgs[0] / 6).toFixed(3) + "/97")
+		ns.print("avg happiness: " + (avgs[1] / 6).toFixed(3) + "/97")
+		ns.print("   avg energy: " + (avgs[2] / 6).toFixed(3) + "/97")
 		stage[1]++;
 		if (avgs[0] / 6 >= 97 && avgs[1] / 6 >= 97 && avgs[2] / 6 >= 97 && stage[1] > 0) { stage[0] += 1; stage[1] = 0; }
-		if (Math.random() > 0.98) ns.openDevMenu()
+		if (Math.random() > 0.95) ns.openDevMenu()
 	}
 
 	//Reassing the employees so that nobody works in R&D
