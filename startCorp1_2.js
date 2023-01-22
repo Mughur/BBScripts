@@ -6,7 +6,7 @@ export async function main(ns) {
 
 	Corporation rework is in progress, this script won't work when it happens, I'll add a script for it at some point
 
-	Script created by Mughur, following step-by-step the tinkered and expanded guide: https://docs.google.com/document/d/1eqQ_KTnk3VkW1XLHjM2fAQbCNY05CTCE85mJFjeFDE8/edit
+	Script created by Mughur, following step-by-step the tinkered and expanded guide: https://docs.google.com/document/d/1fg333UNXWmZ2wZ0CnNWqwqiFQxu_LCImXUsr3fHKVeU/edit#
 	Run this script before creating the corporation, running the script after corp creation or doing anything to corp manually during it's runtime may cause unwanted behaviour
 	The script is designed to work on all BNs with the exception of BN13 (stops working in later BN12s, not sure at which point).
 	In order for it to work properly in nodes with valuation <=0.5, one or more of the steps has to be skipped or tinkered.
