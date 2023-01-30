@@ -1,8 +1,7 @@
 /** @param {NS} ns */
 export async function main(ns) {
 	ns.tail(); ns.disableLog("ALL"); ns.clearLog();
-	/*checked to work in 2.2 (680027cd) in BN 3
-	NOTE!! SF3.3 required for this to work
+	/*checked to work in 2.2.1 (c46cedd5) in BN 3
 
 	Corporation rework is in progress, this script won't work when it happens, I'll add a script for it at some point
 
@@ -107,14 +106,18 @@ export async function main(ns) {
 				await invest(2); // stage 8
 				break;
 			case 9:
-				if (stage[1]==0)ns.print("Buying third production multiplier material batch")
-				await purchaseMaterials(2); // stage 9
+				ns.print("Last Agriculture upgrades")
+				await lastAGUpgrades(0); // stage 9
 				break;
 			case 10:
-				if (stage[1]==0)ns.print("Expand to tobacco");
-				await expandToTobacco(); // stage 10
+				if (stage[1]==0)ns.print("Buying third production multiplier material batch")
+				await purchaseMaterials(2); // stage 10
 				break;
 			case 11:
+				if (stage[1]==0)ns.print("Expand to tobacco");
+				await expandToTobacco(); // stage 11
+				break;
+			case 12:
 				// enter the main corp script below or remove/comment out ns.spawn if you don't have one
 				ns.spawn("corp.js");
 		}
@@ -258,6 +261,17 @@ export async function main(ns) {
 		}
 
 		for (let i = 0; i < 7; i++) {
+			for (let city of cities) {
+				try { c.upgradeWarehouse(agricultureName, city, 1); } catch { }
+			}
+		}
+		stage[0] += 1;
+		stage[1] = 0;
+	}
+
+	//Buy last upgrades for Agriculture
+	async function lastAGUpgrades(){
+		for (let i = 0; i < 9; i++) {
 			for (let city of cities) {
 				try { c.upgradeWarehouse(agricultureName, city, 1); } catch { }
 			}
