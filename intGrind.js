@@ -1,9 +1,10 @@
 /** @param {NS} ns */
 export async function main(ns) {
 	const cities = ["Sector-12", "Chongqing", "New Tokyo", "Ishima", "Volhaven", "Aevum"];
+	let b = ns.bladeburner
 	ns.tail(); ns.disableLog("ALL"); ns.clearLog();
 	let task = 3;
-	let count = [ns.bladeburner.getActionCountRemaining('Operations','Assassination'),ns.bladeburner.getActionCountRemaining('Operations','Undercover Operation')];
+	let count = [b.getActionCountRemaining('Operations','Assassination'),b.getActionCountRemaining('Operations','Undercover Operation')];
 	const startTime = ns.getTimeSinceLastAug();
 	const startHour = Math.floor(startTime/1000 / 60 / 60);
 	while (true) {
@@ -12,75 +13,93 @@ export async function main(ns) {
 		await buySkills();
 		await controlSleeves();
 		await checkChaos();
+		await controlPlayer();
+	}
+	async function controlPlayer(){
+		if(b.getActionEstimatedSuccessChance('Operations', 'Assassination')[0] 
+			!= b.getActionEstimatedSuccessChance('Operations', 'Assassination')[1])task=4;
 		if (!chaos){
 			if (task==1){
-				if (ns.bladeburner.getCurrentAction().name!='Undercover Operation'){
-					if (ns.bladeburner.getActionCountRemaining('Operations','Undercover Operation')>count[1]-10){
-						ns.bladeburner.startAction('Operations','Undercover Operation');
+				if (b.getActionCountRemaining('Operations','Undercover Operation')>count[1]-10){
+					if (b.getCurrentAction().name!='Undercover Operation'){
+						ns.tprint("Undercover Operation: "+count[1])
+						b.startAction('Operations','Undercover Operation');
 					}
-					else{
-						task++;
-					}
+				}
+				else{
+					task++;
 				}
 			}
 			else if (task==2){
-				if (ns.bladeburner.getCurrentAction().name!='Assassination'){
-					if (ns.bladeburner.getActionCountRemaining('Operations','Assassination')>count[0]-10000){
-						ns.bladeburner.startAction('Operations','Assassination');
+				if (b.getActionCountRemaining('Operations','Assassination')>count[0]-10000){
+					if (b.getCurrentAction().name!='Assassination'){
+						ns.tprint("Assassination: "+count[0])
+						b.startAction('Operations','Assassination');
 					}
-					else{
-						task++;
-					}
+				}
+				else{
+					task++;
 				}
 			}
 			else if (task==3){
-				if (ns.bladeburner.getCurrentAction().name!='Incite Violence'){
-					ns.bladeburner.startAction('General','Incite Violence');
-				}
-				if (ns.bladeburner.getActionCountRemaining('Operations','Assassination')>1e4){
+				if (b.getActionCountRemaining('Operations','Assassination')>1e4){
 					task=1;
 					ns.print("time to do those operations");
-					count = [ns.bladeburner.getActionCountRemaining('Operations','Assassination'),ns.bladeburner.getActionCountRemaining('Operations','Undercover Operation')];
+					count = [b.getActionCountRemaining('Operations','Assassination'),b.getActionCountRemaining('Operations','Undercover Operation')];
+				}
+				else if (b.getCurrentAction().name!='Incite Violence'){
+					ns.tprint("Inciting Violence ")
+					b.startAction('General','Incite Violence');
+				}
+			}
+			else{
+				if(b.getActionEstimatedSuccessChance('Operations', 'Assassination')[0] 
+					== b.getActionEstimatedSuccessChance('Operations', 'Assassination')[1])task=3;
+				else{
+					if (b.getCurrentAction().name!='Undercover Operation'){
+						ns.tprint("Improve estimation");
+						b.startAction('Operations','Undercover Operation');
+					}
 				}
 			}
 		}
-		async function buySkills(){
-			let n = 1;
-			if (ns.bladeburner.getActionEstimatedSuccessChance('Operations', 'Undercover Operation')[1] < 1
-				|| ns.bladeburner.getActionEstimatedSuccessChance('Operations', 'Investigation')[1] < 1
-				|| ns.bladeburner.getActionEstimatedSuccessChance('Operations', 'Assassination')[1] < 1
-			) {
-				ns.bladeburner.upgradeSkill("Blade's Intuition", n)
-				ns.bladeburner.upgradeSkill("Cloak", n)
-				ns.bladeburner.upgradeSkill("Short-Circuit", n)
-				ns.bladeburner.upgradeSkill("Digital Observer", n)
-				ns.bladeburner.upgradeSkill("Reaper", n)
-				ns.bladeburner.upgradeSkill("Evasive System", n)
-			}
-			while (ns.bladeburner.getSkillUpgradeCost("Hyperdrive", n * 2) < ns.bladeburner.getSkillPoints()) n *= 2;
+	}
+	async function buySkills(){
+		let n = 1;
+		if (b.getActionEstimatedSuccessChance('Operations', 'Undercover Operation')[1] < 1
+			|| b.getActionEstimatedSuccessChance('Operations', 'Investigation')[1] < 1
+			|| b.getActionEstimatedSuccessChance('Operations', 'Assassination')[1] < 1
+		) {
+			b.upgradeSkill("Blade's Intuition", n)
+			b.upgradeSkill("Cloak", n)
+			b.upgradeSkill("Short-Circuit", n)
+			b.upgradeSkill("Digital Observer", n)
+			b.upgradeSkill("Reaper", n)
+			b.upgradeSkill("Evasive System", n)
+		}
+		while (b.getSkillUpgradeCost("Hyperdrive", n * 2) < b.getSkillPoints()) n *= 2;
 
-			for (let i = n; i >= 1; i /= 2) {
-				if (ns.bladeburner.getSkillUpgradeCost("Hyperdrive", n + i) < ns.bladeburner.getSkillPoints()) n += i;
-			}
-			if (n >= 1 && ns.bladeburner.getSkillUpgradeCost("Hyperdrive", 1) < ns.bladeburner.getSkillPoints()) {
-				ns.print("upgraded Hyperdrive by " + ns.nFormat(n, "0,0") + " levels for " + ns.bladeburner.getSkillUpgradeCost("Hyperdrive", n).toExponential(2) + " points");
-				ns.bladeburner.upgradeSkill("Hyperdrive", n);
-			}
+		for (let i = n; i >= 1; i /= 2) {
+			if (b.getSkillUpgradeCost("Hyperdrive", n + i) < b.getSkillPoints()) n += i;
+		}
+		if (n >= 1 && b.getSkillUpgradeCost("Hyperdrive", 1) < b.getSkillPoints()) {
+			ns.print("upgraded Hyperdrive by " + ns.nFormat(n, "0,0") + " levels for " + b.getSkillUpgradeCost("Hyperdrive", n).toExponential(2) + " points");
+			b.upgradeSkill("Hyperdrive", n);
 		}
 	}
 	async function checkChaos() {
 		for (let city of cities) {
-			if (ns.bladeburner.getCityChaos(city) > 1e100) {
-				if (ns.bladeburner.getCity() != city) ns.bladeburner.switchCity(city);
-				if (ns.bladeburner.getCurrentAction().name != 'Diplomacy') {
+			if (b.getCityChaos(city) > 1e100) {
+				if (b.getCity() != city) b.switchCity(city);
+				if (b.getCurrentAction().name != 'Diplomacy') {
 					ns.print("reducing chaos in "+city)
-					ns.bladeburner.startAction('General', 'Diplomacy');
+					b.startAction('General', 'Diplomacy');
 				}
 				chaos = true;
 				return;
 			}
 		}
-		if (ns.bladeburner.getCity() != "Sector-12") ns.bladeburner.switchCity("Sector-12")
+		if (b.getCity() != "Sector-12") b.switchCity("Sector-12")
 	}
 	async function controlSleeves() {
 		let currentTime = ns.getTimeSinceLastAug();
