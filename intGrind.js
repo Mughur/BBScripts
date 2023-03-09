@@ -7,6 +7,11 @@ export async function main(ns) {
 	let count = [b.getActionCountRemaining('Operations','Assassination'),b.getActionCountRemaining('Operations','Undercover Operation')];
 	const startTime = ns.getTimeSinceLastAug();
 	const startHour = Math.floor(startTime/1000 / 60 / 60);
+	let offset=0;
+	let highest = 0;
+	for (let i=1;i<ns.sleeve.getNumSleeves();i++){
+		if (ns.sleeve.getSleeve(i).storedCycles>ns.sleeve.getSleeve(highest).storedCycles){highest=i}
+	}
 	while (true) {
 		var chaos = false;
 		await ns.sleep(0);
@@ -20,9 +25,12 @@ export async function main(ns) {
 			!= b.getActionEstimatedSuccessChance('Operations', 'Assassination')[1])task=4;
 		if (!chaos){
 			if (task==1){
-				if (b.getActionCountRemaining('Operations','Undercover Operation')>count[1]-10){
+				if (b.getActionCountRemaining('Operations','Undercover Operation')>count[1]-5){
 					if (b.getCurrentAction().name!='Undercover Operation'){
-						ns.tprint("Undercover Operation: "+count[1])
+						let numbers = [b.getActionCountRemaining('Operations','Undercover Operation'),
+						b.getActionSuccesses('Operations','Undercover Operation')]
+						numbers.push(numbers[0]+numbers[1])
+						ns.tprint("Undercover Operation: "+numbers)
 						b.startAction('Operations','Undercover Operation');
 					}
 				}
@@ -33,7 +41,10 @@ export async function main(ns) {
 			else if (task==2){
 				if (b.getActionCountRemaining('Operations','Assassination')>count[0]-10000){
 					if (b.getCurrentAction().name!='Assassination'){
-						ns.tprint("Assassination: "+count[0])
+						let numbers = [b.getActionCountRemaining('Operations','Assassination'),
+						b.getActionSuccesses('Operations','Assassination')]
+						numbers.push(numbers[0]+numbers[1])
+						ns.tprint("Assassination: "+numbers)
 						b.startAction('Operations','Assassination');
 					}
 				}
@@ -82,10 +93,14 @@ export async function main(ns) {
 		for (let i = n; i >= 1; i /= 2) {
 			if (b.getSkillUpgradeCost("Hyperdrive", n + i) < b.getSkillPoints()) n += i;
 		}
-		if (n >= 1 && b.getSkillUpgradeCost("Hyperdrive", 1) < b.getSkillPoints()) {
-			ns.print("upgraded Hyperdrive by " + ns.nFormat(n, "0,0") + " levels for " + b.getSkillUpgradeCost("Hyperdrive", n).toExponential(2) + " points");
+		if (n >= 1 && b.getSkillUpgradeCost("Hyperdrive", n) < b.getSkillPoints() 
+		&& b.getSkillLevel("Hyperdrive")+n > b.getSkillLevel("Hyperdrive")) {
+			ns.print("upgraded Hyperdrive by " + n.toExponential(2) + " levels for " + b.getSkillUpgradeCost("Hyperdrive", n).toExponential(2) + " points");
 			b.upgradeSkill("Hyperdrive", n);
 		}
+		n=1;
+		while(b.getSkillLevel("Datamancer")+n === b.getSkillLevel("Datamancer"))n*=2;
+		b.upgradeSkill("Datamancer", n);
 	}
 	async function checkChaos() {
 		for (let city of cities) {
@@ -104,10 +119,15 @@ export async function main(ns) {
 	async function controlSleeves() {
 		let currentTime = ns.getTimeSinceLastAug();
 		let currentHour = Math.floor(currentTime/1000 / 60 / 60);
-		let difference = currentHour - startHour 
-		let n = difference % 8;
+		let difference = currentHour - startHour
+		if (offset != difference){
+			offset = difference
+			for (let i=0;i<ns.sleeve.getNumSleeves();i++){
+				if (ns.sleeve.getSleeve(i).storedCycles>ns.sleeve.getSleeve(highest).storedCycles){highest=i}
+			}
+		}
 		for (let i = 0; i < ns.sleeve.getNumSleeves(); i++) {
-			if (i == n) {
+			if (i == highest) {
 				if (ns.sleeve.getTask(i) == null) ns.sleeve.setToBladeburnerAction(i, "Infiltrate synthoids");
 				if (ns.sleeve.getTask(i).type != "INFILTRATE") ns.sleeve.setToBladeburnerAction(i, "Infiltrate synthoids");
 			}
